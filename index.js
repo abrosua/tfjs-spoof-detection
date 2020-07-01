@@ -25,7 +25,7 @@ const stats = new Stats();
 stats.showPanel(0);
 document.body.prepend(stats.domElement);
 
-let model, ctx, videoWidth, videoHeight, video, canvas;
+let model, classifier, ctx, videoWidth, videoHeight, video, videoCrop, canvas;
 
 const state = {
   backend: 'wasm'
@@ -54,10 +54,14 @@ async function setupCamera() {
 
 const renderPrediction = async () => {
   stats.begin();
+  const font = "16px sans-serif";
+  ctx.font = font;
 
   const returnTensors = false;
   const flipHorizontal = true;
   const annotateBoxes = true;
+  const classifySpoof = false;
+
   const predictions = await model.estimateFaces(
     video, returnTensors, flipHorizontal, annotateBoxes);
 
@@ -68,26 +72,46 @@ const renderPrediction = async () => {
       if (returnTensors) {
         predictions[i].topLeft = predictions[i].topLeft.arraySync();
         predictions[i].bottomRight = predictions[i].bottomRight.arraySync();
-        if (annotateBoxes) {
-          predictions[i].landmarks = predictions[i].landmarks.arraySync();
-        }
       }
 
       const start = predictions[i].topLeft;
       const end = predictions[i].bottomRight;
       const size = [end[0] - start[0], end[1] - start[1]];
-      ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-      ctx.fillRect(start[0], start[1], size[0], size[1]);
+      const mid = [(start[0] + end[0]) * 0.5, (start[1] + end[1]) * 0.5]
 
-      if (annotateBoxes) {
-        const landmarks = predictions[i].landmarks;
+      // create a Square bounding box
+      const scale = 1
+      const sizeNew = Math.max(size[0], size[1]) * scale
+      const startNew = [mid[0] - (sizeNew * 0.5), mid[1] - (sizeNew * 0.5)]
 
-        ctx.fillStyle = "blue";
-        for (let j = 0; j < landmarks.length; j++) {
-          const x = landmarks[j][0];
-          const y = landmarks[j][1];
-          ctx.fillRect(x, y, 5, 5);
+      // Rendering the bounding box
+      ctx.strokeStyle="red";
+      ctx.lineWidth = "4";
+      ctx.strokeRect(startNew[0], startNew[1], sizeNew, sizeNew);
+
+      // Perform spoof classification (UNFINISHED!)
+      if (classifySpoof) {
+        // Cropping the frame and perform spoof classification
+        const endNew = [startNew[0] + sizeNew, startNew[1] + sizeNew]
+        videoCrop = video.slice([startNew[0], startNew[1], 0], [endNew[0], endNew[1], 3])
+        const labelPredict = classifier(videoCrop)
+
+        if (labelPredict < 0.5) {
+          label = "Real"
+        } else if (labelPredict > 0.5) {
+          label = "Spoof"
+        } else {
+          label = "ERROR!"
         }
+
+        // Drawing the label
+        ctx.fillStyle = "red";
+        const textWidth = ctx.measureText(label).width;
+        const textHeight = parseInt(font, 10); // base 10
+        ctx.fillRect(startNew[0], startNew[1], textWidth + 4, textHeight + 4);
+
+        ctx.fillStyle = "#000000";
+        ctx.fillText(label, startNew[0], startNew[1]);
       }
     }
   }
@@ -114,9 +138,9 @@ const setupPage = async () => {
   ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
 
   model = await blazeface.load();
+  // classifier = await tf.loadModel('./models/mobilenet-spoof/model.json')
 
   renderPrediction();
 };
 
 setupPage();
-
