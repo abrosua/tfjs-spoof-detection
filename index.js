@@ -17,6 +17,8 @@
 
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as tf from '@tensorflow/tfjs-core';
+import * as tfjs from '@tensorflow/tfjs';
+import {loadGraphModel} from '@tensorflow/tfjs-converter';
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 
 tfjsWasm.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@latest/dist/tfjs-backend-wasm.wasm');
@@ -94,7 +96,7 @@ const renderPrediction = async () => {
         // Cropping the frame and perform spoof classification
         const endNew = [startNew[0] + sizeNew, startNew[1] + sizeNew]
         videoCrop = video.slice([startNew[0], startNew[1], 0], [endNew[0], endNew[1], 3])
-        const labelPredict = classifier(videoCrop)
+        const labelPredict = classifier.execute(videoCrop)
 
         if (labelPredict < 0.5) {
           label = "Real"
@@ -138,7 +140,14 @@ const setupPage = async () => {
   ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
 
   model = await blazeface.load();
-  // classifier = await tf.loadModel('./models/mobilenet-spoof/model.json')
+
+  // Load the spoof classification model (Under dev!)
+  const MODEL_URL = "./models/mobilenet-spoof/model.json"
+  // const tfn = require('@tensorflow/tfjs-node');
+  // const handler = tfn.io.fileSystem(modelPath);
+  // classifier = await tfjs.loadModel(handler);
+  // classifier = await tfn.loadLayersModel(modelPath)
+  classifier = await loadGraphModel(MODEL_URL);
 
   renderPrediction();
 };
