@@ -19,3 +19,10 @@ Launching the development server (by default, it's running at http://localhost:1
 ```sh
 yarn watch
 ```
+
+Build the app:
+
+```sh
+yarn build
+```
+This will create a `dist/` folder, which contains the static files needed to serve the app.
