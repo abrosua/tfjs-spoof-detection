@@ -16,8 +16,8 @@
  */
 
 import * as blazeface from '@tensorflow-models/blazeface';
-import * as tf from '@tensorflow/tfjs-core';
-import * as tfjs from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs';
+// import * as tfjs from '@tensorflow/tfjs';
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 
 tfjsWasm.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@latest/dist/tfjs-backend-wasm.wasm');
@@ -139,14 +139,9 @@ const setupPage = async () => {
 
   model = await blazeface.load();
 
-  // Load the spoof classification model (Under dev!)
-  // const tfn = require('@tensorflow/tfjs-node');
-  // const handler = tfn.io.fileSystem(modelPath);
-  // classifier = await tfjs.loadModel(handler);
-  // classifier = await tfn.loadLayersModel(modelPath)
-  const MODEL_URL = "./static/mobilenet-spoof/model.json"
-  // const MODEL_URL = "https://storage.googleapis.com/spoof-classifier/mobilenet-spoof/model.json"
-  classifier = await tfjs.loadLayersModel(MODEL_URL);
+  // Load classifier from static storage
+  const MODEL_URL = "https://storage.googleapis.com/bangkit/mobilenet-spoof/model.json"
+  classifier = await tf.loadLayersModel(MODEL_URL);
 
   renderPrediction();
 };
