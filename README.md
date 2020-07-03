@@ -26,3 +26,13 @@ Build the app:
 yarn build
 ```
 This will create a `dist/` folder, which contains the static files needed to serve the app.
+
+After finish building the app, you could deploy the app using [Firebase hosting](https://console.firebase.google.com/), using the following command.
+```shell script
+firebase deploy
+```
+
+> You need to login into your firebase account first and create your own hosting, refer to the firebase website for the complete guide.
+
+## Demo
+We already deploy this app using a firebase hosting, and you could access it using this [link](bit.ly/spoof-detection).
