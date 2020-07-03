@@ -53,15 +53,27 @@ async function setupCamera() {
   });
 }
 
+function getImage(video, sizeImg, startImg) {
+  const canvasTemp = document.createElement('canvas');
+  canvasTemp.height = sizeImg;
+  canvasTemp.width = sizeImg;
+
+  const ctxTemp = canvasTemp.getContext("2d");
+  ctxTemp.clearRect(0, 0, sizeImg, sizeImg); // clear canvas
+  ctxTemp.drawImage(video, startImg[0], startImg[1], sizeImg, sizeImg, 0, 0, sizeImg, sizeImg);
+
+  return canvasTemp;
+}
+
 const renderPrediction = async () => {
   stats.begin();
-  const font = "16px sans-serif";
+  const font = "24px sans-serif";
   ctx.font = font;
 
   const returnTensors = false;
   const flipHorizontal = true;
   const annotateBoxes = true;
-  const classifySpoof = false;
+  const classifySpoof = true;
 
   const predictions = await model.estimateFaces(
     video, returnTensors, flipHorizontal, annotateBoxes);
@@ -81,7 +93,7 @@ const renderPrediction = async () => {
       const mid = [(start[0] + end[0]) * 0.5, (start[1] + end[1]) * 0.5]
 
       // create a Square bounding box
-      const scale = 1
+      const scale = 1.1
       const sizeNew = Math.max(size[0], size[1]) * scale
       const startNew = [mid[0] - (sizeNew * 0.5), mid[1] - (sizeNew * 0.5)]
 
@@ -93,26 +105,33 @@ const renderPrediction = async () => {
       // Perform spoof classification (UNFINISHED!)
       if (classifySpoof) {
         // Cropping the frame and perform spoof classification
-        const endNew = [startNew[0] + sizeNew, startNew[1] + sizeNew]
-        videoCrop = video.slice([startNew[0], startNew[1], 0], [endNew[0], endNew[1], 3])
-        const labelPredict = classifier.predict(videoCrop)
+        const endNew = [startNew[0] + sizeNew, startNew[1] + sizeNew];
+        videoCrop = getImage(video, sizeNew, startNew);
 
-        if (labelPredict < 0.5) {
-          label = "Real"
-        } else if (labelPredict > 0.5) {
-          label = "Spoof"
-        } else {
-          label = "ERROR!"
-        }
+        const logits = tf.tidy(() => {
+          const normalizationConstant = 1.0 / 255.0;
+
+          let tensor = tf.browser.fromPixels(videoCrop, 3)
+            .resizeBilinear([224, 224], false)
+            .expandDims(0)
+            .toFloat()
+            .mul(normalizationConstant)
+
+          return classifier.predict(tensor);
+        });
+
+        const labelPredict = await logits.data();
+        const label = labelPredict < 0.5? 'Real' : 'Spoof';
+        var labelDisp = label // + ": " + labelPredict
 
         // Drawing the label
         ctx.fillStyle = "red";
-        const textWidth = ctx.measureText(label).width;
+        const textWidth = ctx.measureText(labelDisp).width;
         const textHeight = parseInt(font, 10); // base 10
-        ctx.fillRect(startNew[0], startNew[1], textWidth + 4, textHeight + 4);
+        ctx.fillRect(startNew[0], startNew[1]-textHeight, textWidth + 4, textHeight + 4);
 
-        ctx.fillStyle = "#000000";
-        ctx.fillText(label, startNew[0], startNew[1]);
+        ctx.fillStyle = "white";
+        ctx.fillText(labelDisp, startNew[0], startNew[1]);
       }
     }
   }
