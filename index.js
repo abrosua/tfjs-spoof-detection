@@ -144,7 +144,8 @@ const setupPage = async () => {
   // const handler = tfn.io.fileSystem(modelPath);
   // classifier = await tfjs.loadModel(handler);
   // classifier = await tfn.loadLayersModel(modelPath)
-  const MODEL_URL = "https://storage.googleapis.com/spoof-classifier/mobilenet-spoof/model.json"
+  const MODEL_URL = "./static/mobilenet-spoof/model.json"
+  // const MODEL_URL = "https://storage.googleapis.com/spoof-classifier/mobilenet-spoof/model.json"
   classifier = await tfjs.loadLayersModel(MODEL_URL);
 
   renderPrediction();
