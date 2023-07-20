@@ -35,4 +35,4 @@ firebase deploy
 > You need to login into your firebase account first and create your own hosting, refer to the firebase website for the complete guide.
 
 ## Demo
-We already deploy this app using a firebase hosting, and you could access it using this [link](https://bit.ly/spoof-detection).
+~We already deploy this app using a firebase hosting, and you could access it using this [link](https://bit.ly/spoof-detection).~
