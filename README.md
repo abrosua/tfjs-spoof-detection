@@ -2,7 +2,7 @@
 
 ## Contents
 
-This demo shows how to use the Blazeface model to detect faces in a video stream. Then the face image(s) will be cropped and parsed to the classification model. The model development repo is available [here](https://github.com/abrosua/face-anti-spoofing).
+This demo shows how to use the Blazeface model to detect faces in a video stream. Then the face image(s) will be cropped and parsed to the classification model. The model development repo is available [here](https://github.com/abrosua/face-anti-spoofing) and this is the [Kaggle notebook](https://www.kaggle.com/code/faber24/face-anti-spoofing-detection-using-mobilenetv2) to train the model.
 
 ## Setup
 
